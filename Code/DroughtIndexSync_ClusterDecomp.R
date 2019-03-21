@@ -69,15 +69,61 @@ dev.off()
 pdf("./Results/modulewmfs_phdi_CONUS_allyrs.pdf", width=6.5, height=9)
 par(mfrow=c(4,1))
 for(ii in 1:4){
-  plotmag(phdi.clust$wmfs[[ii]][[ii]],title=paste0("wmf module ",ii))
+  plotmag(phdi.clust$wmfs[[ii]][[ii]],title=paste0("wmf module ",ii),zlim=c(0,1.6))
 }
 dev.off()
 
 pdf("./Results/modulewpmfs_phdi_CONUS_allyrs.pdf", width=6.5, height=9)
 par(mfrow=c(4,1))
 for(ii in 1:4){
-  plotmag(phdi.clust$wpmfs[[ii]][[ii]],title=paste0("wpmf module ",ii))
+  plotmag(phdi.clust$wpmfs[[ii]][[ii]],title=paste0("wpmf module ",ii), zlim=c(0,1))
 }
 dev.off()
 
 print(phdi.clust$clusters)
+
+################################################
+## Now just for aman range in breeding season ##
+
+aman.phdi<-filter(phdi.long,Location%in%c(232,233,234,235, #missouri
+                                          31,32,33,34,35,37, #arkansas
+                                          343,345,346,348,349) & Year<2019) #oklahoma
+
+#filter PHDI for the breeding season only(Sept and Oct), and take the average by division
+aman.breed.phdi<-aman.phdi%>%
+  filter(Month%in%c(c("Sep","Oct")))%>%
+  group_by(Location,Year)%>%
+  dplyr::summarise(phdi=mean(PHDI))
+
+#convert to wide
+aman.breed.phdi.wide<-aman.breed.phdi%>%
+  spread(Year,phdi)
+
+#clean and standardize data
+aman.breed.phdi.clean<-cleandat(as.matrix(aman.breed.phdi.wide[,-1]),clev=5,times=1895:2018)
+
+aman.breed.phdi.clust<-clust(aman.breed.phdi.clean$cdat, times=1895:2018, 
+                             coords=data.frame(lon=unique(aman.phdi$lon),lat=unique(aman.phdi$lat)), method="pearson")
+aman.breed.phdi.clust<-addwmfs(aman.breed.phdi.clust)
+aman.breed.phdi.clust<-addwpmfs(aman.breed.phdi.clust)
+
+## do cluster map plotting for phdi -- all years, all of the US
+pdf("./Results/clustermap_phdi_aman_breed.pdf", width=6.5, height=4.5)
+plotmap(aman.breed.phdi.clust)
+dev.off()
+
+pdf("./Results/modulewmfs_phdi_aman_breed.pdf", width=6.5, height=9)
+par(mfrow=c(4,1))
+for(ii in 1:4){
+  plotmag(aman.breed.phdi.clust$wmfs[[ii]][[ii]],title=paste0("wmf module ",ii),zlim=c(0,2.5))
+}
+dev.off()
+
+pdf("./Results/modulewpmfs_phdi_aman_breed.pdf", width=6.5, height=9)
+par(mfrow=c(4,1))
+for(ii in 1:4){
+  plotmag(aman.breed.phdi.clust$wpmfs[[ii]][[ii]],title=paste0("wpmf module ",ii),zlim=c(0,1))
+}
+dev.off()
+
+print(aman.breed.phdi.clust$clusters)
