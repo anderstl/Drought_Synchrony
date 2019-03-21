@@ -130,3 +130,9 @@ for(ii in 1:4){
 dev.off()
 
 print(aman.breed.phdi.clust$clusters)
+
+######################################################
+## Try out k-means clustering as an alternative 
+######################################################
+
+
