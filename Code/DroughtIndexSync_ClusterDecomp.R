@@ -10,6 +10,7 @@ library(ggplot2)
 library(ncf)
 library(wsyn)
 library(rgdal)
+library(RColorBrewer)
 
 #set local working directory
 #setwd("C:/Users/Tom/Documents/GitRepos/Drought_Synchrony/")
@@ -89,6 +90,8 @@ aman.phdi<-filter(phdi.long,Location%in%c(232,233,234,235, #missouri
                                           31,32,33,34,35,37, #arkansas
                                           343,345,346,348,349) & Year<2019) #oklahoma
 
+amanshp<-stateshp[stateshp$STATE %in% c("Missouri","Arkansas","Oklahoma"),]
+
 #filter PHDI for the breeding season only(Sept and Oct), and take the average by division
 aman.breed.phdi<-aman.phdi%>%
   filter(Month%in%c(c("Sep","Oct")))%>%
@@ -109,7 +112,7 @@ aman.breed.phdi.clust<-addwpmfs(aman.breed.phdi.clust)
 
 ## do cluster map plotting for phdi -- all years, all of the US
 pdf("./Results/clustermap_phdi_aman_breed.pdf", width=6.5, height=4.5)
-plotmap(aman.breed.phdi.clust)
+plotClusterMap(aman.breed.phdi.clust, basemap=amanshp)
 dev.off()
 
 pdf("./Results/modulewmfs_phdi_aman_breed.pdf", width=6.5, height=9)
