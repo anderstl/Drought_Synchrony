@@ -9,7 +9,8 @@ library(ncf)
 library(wsyn)
 
 #set local working directory
-setwd("C:/Users/Tom/Documents/GitRepos/Drought_Synchrony/")
+#setwd("C:/Users/Tom/Documents/GitRepos/Drought_Synchrony/")
+setwd("~/GitHub/Drought_Synchrony/")
 
 #Load centroids of climate divisions
 noaa.cents<-read.csv("Data/noaa.centroids.csv")
