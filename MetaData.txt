@@ -1,0 +1,6 @@
+Website information for data files:
+
+1) NAO Data: https://climatedataguide.ucar.edu/climate-data/hurrell-north-atlantic-oscillation-nao-index-station-based
+2) PHDI and PDSI data (by division): https://www7.ncdc.noaa.gov/CDO/CDODivisionalSelect.jsp
+3) PHDI and PDSI data (ftp website for all of it): https://www1.ncdc.noaa.gov/pub/data/cirs/climdiv/
+3) Readme for PHDI/PDSI data: https://www1.ncdc.noaa.gov/pub/data/cirs/climdiv/divisional-readme.txt
