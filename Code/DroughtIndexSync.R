@@ -83,6 +83,12 @@ phdi.ncf<-Sncf(x=unique(phdi.long$lon),y=unique(phdi.long$lat),z=phdi.clean$cdat
 phdi.wmf<-wmf(phdi.clean$cdat,times=1895:2018)
 phdi.clust<-clust(phdi.clean$cdat,times=1895:2018,coords=data.frame(lon=unique(phdi.long$lon),lat=unique(phdi.long$lat)),method="spearman")
 
+pdsi.clean<-cleandat(as.matrix(pdsi.wide[,-1]),clev=5,times=1895:2018)
+pdsi.ncf<-Sncf(x=unique(pdsi.long$lon),y=unique(pdsi.long$lat),z=pdsi.clean$cdat,latlon=T)
+pdsi.wmf<-wmf(pdsi.clean$cdat,times=1895:2018)
+pdsi.clust<-clust(pdsi.clean$cdat,times=1895:2018,coords=data.frame(lon=unique(pdsi.long$lon),lat=unique(pdsi.long$lat)),method="spearman")
+
+
 #first half (pre-1956: cross-correlations, wavelet mean field and clustering
 phdiPre56.clean<-cleandat(as.matrix(phdi.wide[,2:63]),clev=5,times=1895:1956)
 phdiPre56.clust<-clust(phdiPre56.clean$cdat,times=1895:1956,coords=data.frame(lon=unique(phdi.long$lon),lat=unique(phdi.long$lat)),method="spearman")
@@ -111,6 +117,60 @@ plotmag(phdi.wmf)
 plotmag(phdiPre56.wmf)
 plotmag(phdiPost56.wmf)
 #dev.off()
+
+#clean data
+phdi.clean<-cleandat(as.matrix(phdi.wide[,-1]),clev=5,times=1895:2018)
+pdsi.clean<-cleandat(as.matrix(pdsi.wide[,-1]),clev=5,times=1895:2018)
+nao.clean<-cleandat(as.matrix(nao.mat),clev=5,times=1895:2018)
+enso.clean<-cleandat(as.matrix(enso.mat),clev=5,times=1895:2018)
+
+#Do spatial coherence between phdi and psdi with NAO and ENSO
+nao.phdi<-coh(dat1=phdi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
+              sigmethod="fast",nrand=1000,f0=1)
+nao.pdsi<-coh(dat1=pdsi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
+              sigmethod="fast",nrand=1000,f0=1)
+enso.phdi<-coh(dat1=phdi.clean$cdat,dat2=enso.clean$cdat,times=1895:2018,norm="powall",
+               sigmethod="fast",nrand=1000,f0=1)
+enso.pdsi<-coh(dat1=pdsi.clean$cdat,dat2=enso.clean$cdat,times=1895:2018,norm="powall",
+               sigmethod="fast",nrand=1000,f0=1)
+
+#pick some arbitrary timescale bands to start with for significance tests
+bands<-rbind(c(2,4),c(4,50))
+
+#test coherence between NAO and phdi
+nao.phdi.test<-bandtest(nao.phdi,bands[1,])
+nao.phdi.test$bandp
+nao.phdi.test<-bandtest(nao.phdi,bands[2,])
+nao.phdi.test$bandp
+
+#test coherence between NAO and pdsi
+nao.pdsi.test<-bandtest(nao.pdsi,bands[1,])
+nao.pdsi.test$bandp
+nao.pdsi.test<-bandtest(nao.pdsi,bands[2,])
+nao.pdsi.test$bandp
+
+#test coherence between ENSO and phdi
+enso.phdi.test<-bandtest(enso.phdi,bands[1,])
+enso.phdi.test$bandp
+enso.phdi.test<-bandtest(enso.phdi,bands[2,])
+enso.phdi.test$bandp
+
+#test coherence between ENSO and pdsi
+enso.pdsi.test<-bandtest(enso.pdsi,bands[1,])
+enso.pdsi.test$bandp
+enso.pdsi.test<-bandtest(enso.pdsi,bands[2,])
+enso.pdsi.test$bandp
+
+#explore whether other bands are significant
+par(mfrow=c(2,2))
+plotrank(nao.pdsi)
+title("NAO-PDSI")
+plotrank(nao.phdi)
+title("NAO-PHDI")
+plotrank(enso.pdsi)
+title("ENSO-PDSI")
+plotrank(enso.phdi)
+title("ENSO-PHDI")
 
 
 ####Drought synchchrony for the Ringed Salamander (Amybstoma annulatum)####
@@ -146,40 +206,3 @@ plot(phdi.ncf)
 plotmap(aman.phdi.clust)
 plotmag(aman.phdi.wmf)
 
-#clean data
-phdi.clean<-cleandat(as.matrix(phdi.wide[,-1]),clev=5,times=1895:2018)
-pdsi.clean<-cleandat(as.matrix(pdsi.wide[,-1]),clev=5,times=1895:2018)
-nao.clean<-cleandat(as.matrix(nao.mat),clev=5,times=1895:2018)
-enso.clean<-cleandat(as.matrix(enso.mat),clev=5,times=1895:2018)
-
-#Do spatial coherence between phdi and psdi with NAO and ENSO
-bands<-rbind(c(2,4),c(4,50))
-
-nao.phdi<-coh(dat1=phdi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
-               sigmethod="fast",nrand=1000,f0=1)
-nao.pdsi<-coh(dat1=pdsi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
-               sigmethod="fast",nrand=1000,f0=1)
-enso.phdi<-coh(dat1=phdi.clean$cdat,dat2=enso.clean$cdat,times=1895:2018,norm="powall",
-    sigmethod="fast",nrand=1000,f0=1)
-enso.pdsi<-coh(dat1=pdsi.clean$cdat,dat2=enso.clean$cdat,times=1895:2018,norm="powall",
-               sigmethod="fast",nrand=1000,f0=1)
-
-nao.phdi.test<-bandtest(nao.phdi,bands[1,])
-nao.phdi.test$bandp
-nao.phdi.test<-bandtest(nao.phdi,bands[2,])
-nao.phdi.test$bandp
-
-nao.pdsi.test<-bandtest(nao.pdsi,bands[1,])
-nao.pdsi.test$bandp
-nao.pdsi.test<-bandtest(nao.pdsi,bands[2,])
-nao.pdsi.test$bandp
-
-enso.phdi.test<-bandtest(enso.phdi,bands[1,])
-enso.phdi.test$bandp
-enso.phdi.test<-bandtest(enso.phdi,bands[2,])
-enso.phdi.test$bandp
-
-enso.pdsi.test<-bandtest(enso.pdsi,bands[1,])
-enso.pdsi.test$bandp
-enso.pdsi.test<-bandtest(enso.pdsi,bands[2,])
-enso.pdsi.test$bandp
