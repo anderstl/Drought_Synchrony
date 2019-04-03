@@ -9,22 +9,34 @@ library(ncf)
 library(wsyn)
 
 #set local working directory
-#setwd("C:/Users/Tom/Documents/GitRepos/Drought_Synchrony/")
-setwd("~/GitHub/Drought_Synchrony/")
+#setwd("~/GitHub/Drought_Synchrony/")
+setwd("~/GitRepos/Drought_Synchrony/")
 
 #Load centroids of climate divisions
 noaa.cents<-read.csv("Data/noaa.centroids.csv")
 
 #load PHDI and PSDI values for all states
 phdi<-read.csv("Data/AllStatesPHDI.csv")
-phsi<-read.csv("Data/AllStatesPHDI.csv")
+pdsi<-read.csv("Data/AllStatesPDSI.csv")
+enso<-read.csv("Data/ENSO_SST3.4_1981_2010meanremoved.csv")
+nao<-read.csv("Data/NCAR_NAOdata.csv")
+names(nao)[1]<-"Year"
+enso<-enso[-((dim(enso)[1]-6):dim(enso)[1]),]
 
 #create unique ID based on state code division
 noaa.cents$Location<-paste(noaa.cents$StateCode,noaa.cents$Division,sep="")
 
-#convert PHDI to long format
+#convert all data to long format
 phdi.long<-phdi%>%
   tidyr::gather(key=Month,value=PHDI,-(ID))
+pdsi.long<-pdsi%>%
+  tidyr::gather(key=Month,value=PDSI,-(ID))
+nao.long<-nao%>%
+  tidyr::gather(key=Month,value=NAO,-(Year))%>%
+  filter(Year%in%c(1895:2018))
+enso.long<-enso%>%
+  tidyr::gather(key=Month,value=ENSO,-(Year))%>%
+  filter(Year%in%c(1895:2018))
 
 #create columns for states, divisions, years and locations (combo of state and division)
 phdi.long$StateCode<-ifelse(nchar(trunc(phdi.long$ID))==9,as.numeric(substr(as.character(phdi.long$ID),1,1)),as.numeric(substr(as.character(phdi.long$ID),1,2)))
@@ -32,8 +44,15 @@ phdi.long$DivisionCode<-ifelse(nchar(trunc(phdi.long$ID))==9,as.numeric(substr(a
 phdi.long$Year<-ifelse(nchar(trunc(phdi.long$ID))==9,as.numeric(substr(as.character(phdi.long$ID),6,9)),as.numeric(substr(as.character(phdi.long$ID),7,10)))
 phdi.long$Location<-paste(phdi.long$StateCode,phdi.long$DivisionCode,sep="")
 
+pdsi.long$StateCode<-ifelse(nchar(trunc(pdsi.long$ID))==9,as.numeric(substr(as.character(pdsi.long$ID),1,1)),as.numeric(substr(as.character(pdsi.long$ID),1,2)))
+pdsi.long$DivisionCode<-ifelse(nchar(trunc(pdsi.long$ID))==9,as.numeric(substr(as.character(pdsi.long$ID),2,3)),as.numeric(substr(as.character(pdsi.long$ID),3,4)))
+pdsi.long$Year<-ifelse(nchar(trunc(pdsi.long$ID))==9,as.numeric(substr(as.character(pdsi.long$ID),6,9)),as.numeric(substr(as.character(pdsi.long$ID),7,10)))
+pdsi.long$Location<-paste(pdsi.long$StateCode,pdsi.long$DivisionCode,sep="")
+pdsi.long<-pdsi.long[pdsi.long$StateCode<50,]
+
 #combine with centroid data
 phdi.long<-merge(phdi.long,noaa.cents[,-1],by=c("Location","StateCode"))
+pdsi.long<-merge(pdsi.long,noaa.cents[,-1],by=c("Location","StateCode"))
 
 #convert back to wide format, using the annual average and dropping 2019 from the data
 phdi.wide<-phdi.long%>%
@@ -41,6 +60,22 @@ phdi.wide<-phdi.long%>%
   group_by(Location,Year)%>%
   dplyr::summarise(PHDI=mean(PHDI))%>%
   spread(key = Year,value = PHDI)
+
+pdsi.wide<-pdsi.long%>%
+  dplyr::filter(Year<2019)%>%
+  group_by(Location,Year)%>%
+  dplyr::summarise(PDSI=mean(PDSI))%>%
+  spread(key = Year,value = PDSI)
+
+nao.wide<-nao.long%>%
+  group_by(Year)%>%
+  dplyr::summarise(NAO=mean(NAO))
+nao.mat<-matrix(nao.wide$NAO,nrow=dim(phdi.wide)[1],ncol=length(nao.wide$NAO),byrow=T)
+             
+enso.wide<-enso.long%>%
+  group_by(Year)%>%
+  dplyr::summarise(ENSO=as.numeric(mean(as.numeric(ENSO),na.rm=T)))
+enso.mat<-matrix(enso.wide$ENSO,nrow=dim(phdi.wide)[1],ncol=length(enso.wide$ENSO),byrow=T)
 
 # All years: cross-correlations, wavelet mean field and clustering
 phdi.clean<-cleandat(as.matrix(phdi.wide[,-1]),clev=5,times=1895:2018)
@@ -110,3 +145,20 @@ par(mfrow=c(1,3))
 plot(phdi.ncf)
 plotmap(aman.phdi.clust)
 plotmag(aman.phdi.wmf)
+
+#clean data
+phdi.clean<-cleandat(as.matrix(phdi.wide[,-1]),clev=5,times=1895:2018)
+pdsi.clean<-cleandat(as.matrix(pdsi.wide[,-1]),clev=5,times=1895:2018)
+nao.clean<-cleandat(as.matrix(nao.mat),clev=5,times=1895:2018)
+enso.clean<-cleandat(as.matrix(enso.mat),clev=5,times=1895:2018)
+
+#Do spatial coherence between phdi and psdi with NAO and ENSO
+nao.phdi<-coh(dat1=phdi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
+               sigmethod="fast",nrand=100000,f0=1)
+nao.pdsi<-coh(dat1=pdsi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
+               sigmethod="fast",nrand=100000,f0=1)
+enso.phdi<-coh(dat1=phdi.clean$cdat,dat2=enso.clean$cdat,times=1895:2018,norm="powall",
+    sigmethod="fast",nrand=100000,f0=1)
+enso.pdsi<-coh(dat1=pdsi.clean$cdat,dat2=enso.clean$cdat,times=1895:2018,norm="powall",
+               sigmethod="fast",nrand=100000,f0=1)
+
