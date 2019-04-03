@@ -153,12 +153,33 @@ nao.clean<-cleandat(as.matrix(nao.mat),clev=5,times=1895:2018)
 enso.clean<-cleandat(as.matrix(enso.mat),clev=5,times=1895:2018)
 
 #Do spatial coherence between phdi and psdi with NAO and ENSO
-nao.phdi<-coh(dat1=phdi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
-               sigmethod="fast",nrand=100000,f0=1)
-nao.pdsi<-coh(dat1=pdsi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
-               sigmethod="fast",nrand=100000,f0=1)
-enso.phdi<-coh(dat1=phdi.clean$cdat,dat2=enso.clean$cdat,times=1895:2018,norm="powall",
-    sigmethod="fast",nrand=100000,f0=1)
-enso.pdsi<-coh(dat1=pdsi.clean$cdat,dat2=enso.clean$cdat,times=1895:2018,norm="powall",
-               sigmethod="fast",nrand=100000,f0=1)
+bands<-rbind(c(2,4),c(4,50))
 
+nao.phdi<-coh(dat1=phdi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
+               sigmethod="fast",nrand=1000,f0=1)
+nao.pdsi<-coh(dat1=pdsi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
+               sigmethod="fast",nrand=1000,f0=1)
+enso.phdi<-coh(dat1=phdi.clean$cdat,dat2=enso.clean$cdat,times=1895:2018,norm="powall",
+    sigmethod="fast",nrand=1000,f0=1)
+enso.pdsi<-coh(dat1=pdsi.clean$cdat,dat2=enso.clean$cdat,times=1895:2018,norm="powall",
+               sigmethod="fast",nrand=1000,f0=1)
+
+nao.phdi.test<-bandtest(nao.phdi,bands[1,])
+nao.phdi.test$bandp
+nao.phdi.test<-bandtest(nao.phdi,bands[2,])
+nao.phdi.test$bandp
+
+nao.pdsi.test<-bandtest(nao.pdsi,bands[1,])
+nao.pdsi.test$bandp
+nao.pdsi.test<-bandtest(nao.pdsi,bands[2,])
+nao.pdsi.test$bandp
+
+enso.phdi.test<-bandtest(enso.phdi,bands[1,])
+enso.phdi.test$bandp
+enso.phdi.test<-bandtest(enso.phdi,bands[2,])
+enso.phdi.test$bandp
+
+enso.pdsi.test<-bandtest(enso.pdsi,bands[1,])
+enso.pdsi.test$bandp
+enso.pdsi.test<-bandtest(enso.pdsi,bands[2,])
+enso.pdsi.test$bandp
