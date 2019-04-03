@@ -172,6 +172,8 @@ title("ENSO-PDSI")
 plotrank(enso.phdi)
 title("ENSO-PHDI")
 
+#Nothing appears to be going on.....
+#Things to test for next: seaonality in drought (breeding season) and climate indices
 
 ####Drought synchchrony for the Ringed Salamander (Amybstoma annulatum)####
 
