@@ -163,17 +163,75 @@ nao.meta<-nao.long%>%
 nao.meta.mat<-matrix(nao.meta$NAO,nrow=length(unique(aman.breed.pdsi$Location)),ncol=length(unique(aman.breed.pdsi$Year)),byrow=T)
 
 enso.breed<-enso.long%>%
-  filter(Month%in%c(c("Sept","Oct")))%>%
+  filter(Month%in%c(c("Sep","Oct")))%>%
   group_by(Year)%>%
   dplyr::summarise(ENSO=as.numeric(mean(as.numeric(ENSO),na.rm=T)))
 enso.breed.mat<-matrix(enso.breed$ENSO,nrow=length(unique(aman.breed.pdsi$Location)),ncol=length(unique(aman.breed.pdsi$Year)),byrow=T)
 pdo.breed<-pdo.long%>%
-  filter(Month%in%c(c("Sept","Oct")))%>%
+  filter(Month%in%c(c("Sep","Oct")))%>%
   group_by(Year)%>%
   dplyr::summarise(PDO=mean(PDO))
 pdo.breed.mat<-matrix(pdo.breed$PDO,nrow=length(unique(aman.breed.pdsi$Location)),ncol=length(unique(aman.breed.pdsi$Year)),byrow=T)
 nao.breed<-nao.long%>%
-  filter(Month%in%c(c("Sept","Oct")))%>%
+  filter(Month%in%c(c("Sep","Oct")))%>%
   group_by(Year)%>%
   dplyr::summarise(NAO=mean(NAO))
 nao.breed.mat<-matrix(nao.breed$NAO,nrow=length(unique(aman.breed.pdsi$Location)),ncol=length(unique(aman.breed.pdsi$Year)),byrow=T)
+
+nao.breed.clean<-cleandat(nao.breed.mat[,-124],clev=5,times=1895:2018) 
+enso.breed.clean<-cleandat(enso.breed.mat,clev=5,times=1895:2018)
+pdo.breed.clean<-cleandat(pdo.breed.mat,clev=5,times=1895:2018)
+
+#test for coherence between indices during breeding season
+nao.phdi.breed<-coh(dat1=aman.breed.phdi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
+              sigmethod="fast",nrand=1000,f0=1)
+pdo.phdi.breed<-coh(dat1=aman.breed.phdi.clean$cdat,dat2=pdo.breed.clean$cdat,times=1895:2018,norm="powall",
+              sigmethod="fast",nrand=1000,f0=1)
+enso.phdi.breed<-coh(dat1=aman.breed.phdi.clean$cdat,dat2=enso.breed.clean$cdat,times=1895:2018,norm="powall",
+               sigmethod="fast",nrand=1000,f0=1)
+nao.pdsi.breed<-coh(dat1=aman.breed.pdsi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
+                    sigmethod="fast",nrand=1000,f0=1)
+pdo.pdsi.breed<-coh(dat1=aman.breed.pdsi.clean$cdat,dat2=pdo.breed.clean$cdat,times=1895:2018,norm="powall",
+                    sigmethod="fast",nrand=1000,f0=1)
+enso.pdsi.breed<-coh(dat1=aman.breed.pdsi.clean$cdat,dat2=enso.breed.clean$cdat,times=1895:2018,norm="powall",
+                     sigmethod="fast",nrand=1000,f0=1)
+
+
+#pick some arbitrary timescale bands to start with for significance tests
+bands<-rbind(c(2,4),c(4,50))
+
+#test coherence between NAO and phdi during breeding
+nao.phdi.test<-bandtest(nao.phdi.breed,bands[1,])
+nao.phdi.test$bandp
+nao.phdi.test<-bandtest(nao.phdi.breed,bands[2,])
+nao.phdi.test$bandp
+
+#test coherence between NAO and pdsi during breeding
+nao.pdsi.test<-bandtest(nao.pdsi.breed,bands[1,])
+nao.pdsi.test$bandp
+nao.pdsi.test<-bandtest(nao.pdsi.breed,bands[2,])
+nao.pdsi.test$bandp
+
+#test coherence between ENSO and phdi during breeding
+enso.phdi.test<-bandtest(enso.phdi.breed,bands[1,])
+enso.phdi.test$bandp
+enso.phdi.test<-bandtest(enso.phdi.breed,bands[2,])
+enso.phdi.test$bandp
+
+#test coherence between ENSO and pdsi during breeding
+enso.pdsi.test<-bandtest(enso.pdsi.breed,bands[1,])
+enso.pdsi.test$bandp
+enso.pdsi.test<-bandtest(enso.pdsi.breed,bands[2,])
+enso.pdsi.test$bandp
+
+#test coherence between PDO and phdi during breeding
+pdo.phdi.test<-bandtest(pdo.phdi.breed,bands[1,])
+pdo.phdi.test$bandp
+pdo.phdi.test<-bandtest(pdo.phdi.breed,bands[2,])
+pdo.phdi.test$bandp
+
+#test coherence between pdo and pdsi during breeding
+pdo.pdsi.test<-bandtest(pdo.pdsi.breed,bands[1,])
+pdo.pdsi.test$bandp
+pdo.pdsi.test<-bandtest(pdo.pdsi.breed,bands[2,])
+pdo.pdsi.test$bandp

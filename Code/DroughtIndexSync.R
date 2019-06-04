@@ -22,6 +22,7 @@ enso<-read.csv("Data/ENSO_SST3.4_1981_2010meanremoved.csv")
 enso<-enso[-((dim(enso)[1]-6):dim(enso)[1]),]
 nao<-read.csv("Data/NCAR_NAOdata.csv")
 names(nao)[1]<-"Year"
+nao[nao==-999.0]<-NA
 pdo<-read.csv("Data/PDO.csv")
 pdo<-pdo[,1:4]
 
