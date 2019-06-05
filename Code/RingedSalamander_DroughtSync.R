@@ -181,19 +181,22 @@ nao.breed.mat<-matrix(nao.breed$NAO,nrow=length(unique(aman.breed.pdsi$Location)
 nao.breed.clean<-cleandat(nao.breed.mat[,-124],clev=5,times=1895:2018) 
 enso.breed.clean<-cleandat(enso.breed.mat,clev=5,times=1895:2018)
 pdo.breed.clean<-cleandat(pdo.breed.mat,clev=5,times=1895:2018)
+nao.meta.clean<-cleandat(nao.meta.mat[,-124],clev=5,times=1895:2018) 
+enso.meta.clean<-cleandat(enso.meta.mat,clev=5,times=1895:2018)
+pdo.meta.clean<-cleandat(pdo.meta.mat,clev=5,times=1895:2018)
 
-#test for coherence between indices during breeding season
+#test for coherence between indices during metaing season
 nao.phdi.breed<-coh(dat1=aman.breed.phdi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
               sigmethod="fast",nrand=1000,f0=1)
 pdo.phdi.breed<-coh(dat1=aman.breed.phdi.clean$cdat,dat2=pdo.breed.clean$cdat,times=1895:2018,norm="powall",
               sigmethod="fast",nrand=1000,f0=1)
 enso.phdi.breed<-coh(dat1=aman.breed.phdi.clean$cdat,dat2=enso.breed.clean$cdat,times=1895:2018,norm="powall",
                sigmethod="fast",nrand=1000,f0=1)
-nao.pdsi.breed<-coh(dat1=aman.breed.pdsi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
+nao.pdsi.meta<-coh(dat1=aman.meta.pdsi.clean$cdat,dat2=nao.clean$cdat,times=1895:2018,norm="powall",
                     sigmethod="fast",nrand=1000,f0=1)
-pdo.pdsi.breed<-coh(dat1=aman.breed.pdsi.clean$cdat,dat2=pdo.breed.clean$cdat,times=1895:2018,norm="powall",
+pdo.pdsi.meta<-coh(dat1=aman.meta.pdsi.clean$cdat,dat2=pdo.meta.clean$cdat,times=1895:2018,norm="powall",
                     sigmethod="fast",nrand=1000,f0=1)
-enso.pdsi.breed<-coh(dat1=aman.breed.pdsi.clean$cdat,dat2=enso.breed.clean$cdat,times=1895:2018,norm="powall",
+enso.pdsi.meta<-coh(dat1=aman.meta.pdsi.clean$cdat,dat2=enso.meta.clean$cdat,times=1895:2018,norm="powall",
                      sigmethod="fast",nrand=1000,f0=1)
 
 
@@ -234,4 +237,30 @@ pdo.phdi.test$bandp
 pdo.pdsi.test<-bandtest(pdo.pdsi.breed,bands[1,])
 pdo.pdsi.test$bandp
 pdo.pdsi.test<-bandtest(pdo.pdsi.breed,bands[2,])
+pdo.pdsi.test$bandp
+
+#test for effects during metamorphosis
+
+#test coherence between ENSO and phdi during metamorphosis
+enso.phdi.test<-bandtest(enso.phdi.meta,bands[1,])
+enso.phdi.test$bandp
+enso.phdi.test<-bandtest(enso.phdi.meta,bands[2,])
+enso.phdi.test$bandp
+
+#test coherence between ENSO and pdsi during metamorphosis
+enso.pdsi.test<-bandtest(enso.pdsi.meta,bands[1,])
+enso.pdsi.test$bandp
+enso.pdsi.test<-bandtest(enso.pdsi.meta,bands[2,])
+enso.pdsi.test$bandp
+
+#test coherence between PDO and phdi during metamorphosis
+pdo.phdi.test<-bandtest(pdo.phdi.meta,bands[1,])
+pdo.phdi.test$bandp
+pdo.phdi.test<-bandtest(pdo.phdi.meta,bands[2,])
+pdo.phdi.test$bandp
+
+#test coherence between pdo and pdsi during metamorphosis
+pdo.pdsi.test<-bandtest(pdo.pdsi.meta,bands[1,])
+pdo.pdsi.test$bandp
+pdo.pdsi.test<-bandtest(pdo.pdsi.meta,bands[2,])
 pdo.pdsi.test$bandp
