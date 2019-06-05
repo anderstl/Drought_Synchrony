@@ -61,15 +61,17 @@ pdsi.long<-pdsi.long[pdsi.long$StateCode<50,]
 phdi.long<-merge(phdi.long,noaa.cents[,-1],by=c("Location","StateCode"))
 pdsi.long<-merge(pdsi.long,noaa.cents[,-1],by=c("Location","StateCode"))
 
+#drop 2019 from phdi and pdsi
+phdi.long<-filter(phdi.long,Year<2019)
+pdsi.long<-filter(pdsi.long,Year<2019)
+
 #convert back to wide format, using the annual average and dropping 2019 from the data
 phdi.wide<-phdi.long%>%
-  dplyr::filter(Year<2019)%>%
   group_by(Location,Year)%>%
   dplyr::summarise(PHDI=mean(PHDI))%>%
   spread(key = Year,value = PHDI)
 
 pdsi.wide<-pdsi.long%>%
-  dplyr::filter(Year<2019)%>%
   group_by(Location,Year)%>%
   dplyr::summarise(PDSI=mean(PDSI))%>%
   spread(key = Year,value = PDSI)
@@ -236,6 +238,26 @@ fall.phdi<-phdi.long%>%
   group_by(Location,Year)%>%
   dplyr::summarise(PHDI=mean(PHDI))%>%
   spread(key = Year,value = PHDI)
+
+win.phdi<-matrix(NA,nrow=length(unique(phdi.long$Location)),ncol=length(1895:2018))
+for(loc in sort(unique(phdi.long$Location))){
+  for(year in sort(unique(phdi.long$Year))){
+    tmp<-phdi.long[phdi.long$Location==loc & phdi.long$Year==year & phdi.long$Month%in%c("Jan","Feb"),] 
+    tmp<-rbind(tmp, phdi.long[phdi.long$Location==loc & phdi.long$Year==(year-1) & phdi.long$Month=="Dec",])
+    tmp1<-mean(tmp[,'PHDI'],na.rm=T)
+    win.phdi[sort(unique(phdi.long$Location)) %in% loc,sort(unique(phdi.long$Year)) %in%year]<-tmp1
+  }
+}
+
+win.pdsi<-matrix(NA,nrow=length(unique(pdsi.long$Location)),ncol=length(1895:2018))
+for(loc in sort(unique(pdsi.long$Location))){
+  for(year in sort(unique(pdsi.long$Year))){
+    tmp<-pdsi.long[pdsi.long$Location==loc & pdsi.long$Year==year & pdsi.long$Month%in%c("Jan","Feb"),] 
+    tmp<-rbind(tmp, pdsi.long[pdsi.long$Location==loc & pdsi.long$Year==(year-1) & pdsi.long$Month=="Dec",])
+    tmp1<-mean(tmp[,'PDSI'],na.rm=T)
+    win.pdsi[sort(unique(pdsi.long$Location)) %in% loc,sort(unique(pdsi.long$Year)) %in%year]<-tmp1
+  }
+}
 
 #seasonal climate indices
 spr.nao.wide<-nao.long%>%
