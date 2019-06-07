@@ -91,6 +91,124 @@ pdo.wide<-pdo.long%>%
   dplyr::summarise(PDO=as.numeric(mean(as.numeric(PDO),na.rm=T)))
 pdo.mat<-matrix(pdo.wide$PDO,nrow=dim(phdi.wide)[1],ncol=length(pdo.wide$PDO),byrow=T)
 
+#Things to test for next: seaonality in drought (breeding season) and climate indices
+spr.pdsi<-pdsi.long%>%
+  dplyr::filter(Month%in%c("Mar","Apr","May"),Year<2019)%>%
+  group_by(Location,Year)%>%
+  dplyr::summarise(PDSI=mean(PDSI))%>%
+  spread(key = Year,value = PDSI)
+spr.phdi<-phdi.long%>%
+  dplyr::filter(Month%in%c("Mar","Apr","May"),Year<2019)%>%
+  group_by(Location,Year)%>%
+  dplyr::summarise(PHDI=mean(PHDI))%>%
+  spread(key = Year,value = PHDI)
+sum.pdsi<-pdsi.long%>%
+  dplyr::filter(Month%in%c("Jun","Jul","Aug"),Year<2019)%>%
+  group_by(Location,Year)%>%
+  dplyr::summarise(PDSI=mean(PDSI))%>%
+  spread(key = Year,value = PDSI)
+sum.phdi<-phdi.long%>%
+  dplyr::filter(Month%in%c("Jun","Jul","Aug"),Year<2019)%>%
+  group_by(Location,Year)%>%
+  dplyr::summarise(PHDI=mean(PHDI))%>%
+  spread(key = Year,value = PHDI)
+fall.pdsi<-pdsi.long%>%
+  dplyr::filter(Month%in%c("Sep","Oct","Nov"),Year<2019)%>%
+  group_by(Location,Year)%>%
+  dplyr::summarise(PDSI=mean(PDSI))%>%
+  spread(key = Year,value = PDSI)
+fall.phdi<-phdi.long%>%
+  dplyr::filter(Month%in%c("Sep","Oct","Nov"),Year<2019)%>%
+  group_by(Location,Year)%>%
+  dplyr::summarise(PHDI=mean(PHDI))%>%
+  spread(key = Year,value = PHDI)
+
+phdilocs<-sort(unique(phdi.long$Location))
+phdiyears<-sort(unique(phdi.long$Year))
+if(!file.exists("Data/win.phdi.rds")){
+  win.phdi<-matrix(NA,nrow=length(phdilocs),ncol=length(phdiyears))
+  for(loc in pdsilocs){
+    for(year in pdsiyears){
+      tmp<-phdi.long[phdi.long$Location==loc & phdi.long$Year==year & phdi.long$Month%in%c("Jan","Feb"),] 
+      tmp<-rbind(tmp, phdi.long[phdi.long$Location==loc & phdi.long$Year==(year-1) & phdi.long$Month=="Dec",])
+      tmp1<-mean(tmp[,'PHDI'],na.rm=T)
+      win.phdi[phdilocs %in% loc,phdiyears %in%year]<-tmp1
+    }
+  }
+  saveRDS(win.phdi,"Data/win.phdi.rds")
+}
+
+pdsilocs<-sort(unique(pdsi.long$Location))
+pdsiyears<-sort(unique(pdsi.long$Year))
+if(!file.exists("Data/win.pdsi.rds")){
+  win.pdsi<-matrix(NA,nrow=length(unique(pdsi.long$Location)),ncol=length(1895:2018))
+  for(loc in pdsilocs){
+    for(year in pdsiyears){
+      tmp<-pdsi.long[pdsi.long$Location==loc & pdsi.long$Year==year & pdsi.long$Month%in%c("Jan","Feb"),] 
+      tmp<-rbind(tmp, pdsi.long[pdsi.long$Location==loc & pdsi.long$Year==(year-1) & pdsi.long$Month=="Dec",])
+      tmp1<-mean(tmp[,'PDSI'],na.rm=T)
+      win.pdsi[pdsilocs %in% loc,pdsiyears %in%year]<-tmp1
+    }
+  }
+saveRDS(win.phdi,"Data/win.pdsi.rds")
+}
+
+#seasonal climate indices
+spr.nao.wide<-nao.long%>%
+  filter(Month%in%c("Mar","Apr","May"))%>%
+  group_by(Year)%>%
+  dplyr::summarise(NAO=mean(NAO))
+spr.nao.mat<-matrix(spr.nao.wide$NAO,nrow=dim(phdi.wide)[1],ncol=length(spr.nao.wide$NAO),byrow=T)
+
+spr.enso.wide<-enso.long%>%
+  filter(Month%in%c("Mar","Apr","May"))%>%
+  group_by(Year)%>%
+  dplyr::summarise(ENSO=as.numeric(mean(as.numeric(ENSO),na.rm=T)))
+spr.enso.mat<-matrix(spr.enso.wide$ENSO,nrow=dim(phdi.wide)[1],ncol=length(spr.enso.wide$ENSO),byrow=T)
+
+sum.nao.wide<-nao.long%>%
+  filter(Month%in%c("Jun","Jul","Aug"))%>%
+  group_by(Year)%>%
+  dplyr::summarise(NAO=mean(NAO))
+sum.nao.mat<-matrix(sum.nao.wide$NAO,nrow=dim(phdi.wide)[1],ncol=length(sum.nao.wide$NAO),byrow=T)
+
+sum.enso.wide<-enso.long%>%
+  filter(Month%in%c("Jun","Jul","Aug"))%>%
+  group_by(Year)%>%
+  dplyr::summarise(ENSO=as.numeric(mean(as.numeric(ENSO),na.rm=T)))
+sum.enso.mat<-matrix(sum.enso.wide$ENSO,nrow=dim(phdi.wide)[1],ncol=length(sum.enso.wide$ENSO),byrow=T)
+
+fall.nao.wide<-nao.long%>%
+  filter(Month%in%c("Sep","Oct","Nov"))%>%
+  group_by(Year)%>%
+  dplyr::summarise(NAO=mean(NAO))
+fall.nao.mat<-matrix(fall.nao.wide$NAO,nrow=dim(phdi.wide)[1],ncol=length(fall.nao.wide$NAO),byrow=T)
+
+fall.enso.wide<-enso.long%>%
+  filter(Month%in%c("Sep","Oct","Nov"))%>%
+  group_by(Year)%>%
+  dplyr::summarise(ENSO=as.numeric(mean(as.numeric(ENSO),na.rm=T)))
+fall.enso.mat<-matrix(fall.enso.wide$ENSO,nrow=dim(phdi.wide)[1],ncol=length(fall.enso.wide$ENSO),byrow=T)
+
+sum.pdo.wide<-pdo.long%>%
+  filter(Month%in%c("Jun","Jul","Aug"))%>%
+  group_by(Year)%>%
+  dplyr::summarise(PDO=as.numeric(mean(as.numeric(PDO),na.rm=T)))
+sum.pdo.mat<-matrix(sum.pdo.wide$PDO,nrow=dim(phdi.wide)[1],ncol=length(sum.pdo.wide$PDO),byrow=T)
+
+fall.pdo.wide<-pdo.long%>%
+  filter(Month%in%c("Sep","Oct","Nov"))%>%
+  group_by(Year)%>%
+  dplyr::summarise(PDO=mean(PDO))
+fall.pdo.mat<-matrix(fall.pdo.wide$PDO,nrow=dim(phdi.wide)[1],ncol=length(fall.pdo.wide$PDO),byrow=T)
+
+spr.pdo.wide<-pdo.long%>%
+  filter(Month%in%c("Mar","Apr","May"))%>%
+  group_by(Year)%>%
+  dplyr::summarise(PDO=as.numeric(mean(as.numeric(PDO),na.rm=T)))
+spr.pdo.mat<-matrix(spr.pdo.wide$PDO,nrow=dim(phdi.wide)[1],ncol=length(spr.pdo.wide$PDO),byrow=T)
+
+
 # All years: cross-correlations, wavelet mean field and clustering
 phdi.clean<-cleandat(as.matrix(phdi.wide[,-1]),clev=5,times=1895:2018)
 phdi.ncf<-Sncf(x=unique(phdi.long$lon),y=unique(phdi.long$lat),z=phdi.clean$cdat,latlon=T)
@@ -148,9 +266,9 @@ enso.phdi<-coh(dat1=phdi.clean$cdat,dat2=enso.clean$cdat,times=1895:2018,norm="p
 enso.pdsi<-coh(dat1=pdsi.clean$cdat,dat2=enso.clean$cdat,times=1895:2018,norm="powall",
                sigmethod="fast",nrand=1000,f0=1)
 pdo.phdi<-coh(dat1=phdi.clean$cdat,dat2=pdo.clean$cdat,times=1895:2018,norm="powall",
-               sigmethod="fast",nrand=1000,f0=1)
+              sigmethod="fast",nrand=1000,f0=1)
 pdo.pdsi<-coh(dat1=pdsi.clean$cdat,dat2=pdo.clean$cdat,times=1895:2018,norm="powall",
-               sigmethod="fast",nrand=1000,f0=1)
+              sigmethod="fast",nrand=1000,f0=1)
 
 #pick some arbitrary timescale bands to start with for significance tests
 bands<-rbind(c(2,4),c(4,50))
@@ -205,111 +323,3 @@ plotrank(pdo.pdsi)
 title("PDO-PDSI")
 plotrank(pdo.phdi)
 title("PDO-PHDI")
-
-#Nothing appears to be going on.....
-#Things to test for next: seaonality in drought (breeding season) and climate indices
-spr.pdsi<-pdsi.long%>%
-  dplyr::filter(Month%in%c("Mar","Apr","May"),Year<2019)%>%
-  group_by(Location,Year)%>%
-  dplyr::summarise(PDSI=mean(PDSI))%>%
-  spread(key = Year,value = PDSI)
-spr.phdi<-phdi.long%>%
-  dplyr::filter(Month%in%c("Mar","Apr","May"),Year<2019)%>%
-  group_by(Location,Year)%>%
-  dplyr::summarise(PHDI=mean(PHDI))%>%
-  spread(key = Year,value = PHDI)
-sum.pdsi<-pdsi.long%>%
-  dplyr::filter(Month%in%c("Jun","Jul","Aug"),Year<2019)%>%
-  group_by(Location,Year)%>%
-  dplyr::summarise(PDSI=mean(PDSI))%>%
-  spread(key = Year,value = PDSI)
-sum.phdi<-phdi.long%>%
-  dplyr::filter(Month%in%c("Jun","Jul","Aug"),Year<2019)%>%
-  group_by(Location,Year)%>%
-  dplyr::summarise(PHDI=mean(PHDI))%>%
-  spread(key = Year,value = PHDI)
-fall.pdsi<-pdsi.long%>%
-  dplyr::filter(Month%in%c("Sep","Oct","Nov"),Year<2019)%>%
-  group_by(Location,Year)%>%
-  dplyr::summarise(PDSI=mean(PDSI))%>%
-  spread(key = Year,value = PDSI)
-fall.phdi<-phdi.long%>%
-  dplyr::filter(Month%in%c("Sep","Oct","Nov"),Year<2019)%>%
-  group_by(Location,Year)%>%
-  dplyr::summarise(PHDI=mean(PHDI))%>%
-  spread(key = Year,value = PHDI)
-
-win.phdi<-matrix(NA,nrow=length(unique(phdi.long$Location)),ncol=length(1895:2018))
-for(loc in sort(unique(phdi.long$Location))){
-  for(year in sort(unique(phdi.long$Year))){
-    tmp<-phdi.long[phdi.long$Location==loc & phdi.long$Year==year & phdi.long$Month%in%c("Jan","Feb"),] 
-    tmp<-rbind(tmp, phdi.long[phdi.long$Location==loc & phdi.long$Year==(year-1) & phdi.long$Month=="Dec",])
-    tmp1<-mean(tmp[,'PHDI'],na.rm=T)
-    win.phdi[sort(unique(phdi.long$Location)) %in% loc,sort(unique(phdi.long$Year)) %in%year]<-tmp1
-  }
-}
-
-win.pdsi<-matrix(NA,nrow=length(unique(pdsi.long$Location)),ncol=length(1895:2018))
-for(loc in sort(unique(pdsi.long$Location))){
-  for(year in sort(unique(pdsi.long$Year))){
-    tmp<-pdsi.long[pdsi.long$Location==loc & pdsi.long$Year==year & pdsi.long$Month%in%c("Jan","Feb"),] 
-    tmp<-rbind(tmp, pdsi.long[pdsi.long$Location==loc & pdsi.long$Year==(year-1) & pdsi.long$Month=="Dec",])
-    tmp1<-mean(tmp[,'PDSI'],na.rm=T)
-    win.pdsi[sort(unique(pdsi.long$Location)) %in% loc,sort(unique(pdsi.long$Year)) %in%year]<-tmp1
-  }
-}
-
-#seasonal climate indices
-spr.nao.wide<-nao.long%>%
-  filter(Month%in%c("Mar","Apr","May"))%>%
-  group_by(Year)%>%
-  dplyr::summarise(NAO=mean(NAO))
-spr.nao.mat<-matrix(spr.nao.wide$NAO,nrow=dim(phdi.wide)[1],ncol=length(spr.nao.wide$NAO),byrow=T)
-
-spr.enso.wide<-enso.long%>%
-  filter(Month%in%c("Mar","Apr","May"))%>%
-  group_by(Year)%>%
-  dplyr::summarise(ENSO=as.numeric(mean(as.numeric(ENSO),na.rm=T)))
-spr.enso.mat<-matrix(spr.enso.wide$ENSO,nrow=dim(phdi.wide)[1],ncol=length(spr.enso.wide$ENSO),byrow=T)
-
-sum.nao.wide<-nao.long%>%
-  filter(Month%in%c("Jun","Jul","Aug"))%>%
-  group_by(Year)%>%
-  dplyr::summarise(NAO=mean(NAO))
-sum.nao.mat<-matrix(sum.nao.wide$NAO,nrow=dim(phdi.wide)[1],ncol=length(sum.nao.wide$NAO),byrow=T)
-
-sum.enso.wide<-enso.long%>%
-  filter(Month%in%c("Jun","Jul","Aug"))%>%
-  group_by(Year)%>%
-  dplyr::summarise(ENSO=as.numeric(mean(as.numeric(ENSO),na.rm=T)))
-sum.enso.mat<-matrix(sum.enso.wide$ENSO,nrow=dim(phdi.wide)[1],ncol=length(sum.enso.wide$ENSO),byrow=T)
-
-fall.nao.wide<-nao.long%>%
-  filter(Month%in%c("Sep","Oct","Nov"))%>%
-  group_by(Year)%>%
-  dplyr::summarise(NAO=mean(NAO))
-fall.nao.mat<-matrix(fall.nao.wide$NAO,nrow=dim(phdi.wide)[1],ncol=length(fall.nao.wide$NAO),byrow=T)
-
-fall.enso.wide<-enso.long%>%
-  filter(Month%in%c("Sep","Oct","Nov"))%>%
-  group_by(Year)%>%
-  dplyr::summarise(ENSO=as.numeric(mean(as.numeric(ENSO),na.rm=T)))
-fall.enso.mat<-matrix(fall.enso.wide$ENSO,nrow=dim(phdi.wide)[1],ncol=length(fall.enso.wide$ENSO),byrow=T)
-
-sum.pdo.wide<-pdo.long%>%
-  filter(Month%in%c("Jun","Jul","Aug"))%>%
-  group_by(Year)%>%
-  dplyr::summarise(PDO=as.numeric(mean(as.numeric(PDO),na.rm=T)))
-sum.pdo.mat<-matrix(sum.pdo.wide$PDO,nrow=dim(phdi.wide)[1],ncol=length(sum.pdo.wide$PDO),byrow=T)
-
-fall.pdo.wide<-pdo.long%>%
-  filter(Month%in%c("Sep","Oct","Nov"))%>%
-  group_by(Year)%>%
-  dplyr::summarise(PDO=mean(PDO))
-fall.pdo.mat<-matrix(fall.pdo.wide$PDO,nrow=dim(phdi.wide)[1],ncol=length(fall.pdo.wide$PDO),byrow=T)
-
-spr.pdo.wide<-pdo.long%>%
-  filter(Month%in%c("Mar","Apr","May"))%>%
-  group_by(Year)%>%
-  dplyr::summarise(PDO=as.numeric(mean(as.numeric(PDO),na.rm=T)))
-spr.pdo.mat<-matrix(spr.pdo.wide$PDO,nrow=dim(phdi.wide)[1],ncol=length(spr.pdo.wide$PDO),byrow=T)
